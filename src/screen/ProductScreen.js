@@ -27,7 +27,7 @@ const ProductScreen = ({ match }) => {
     };
 
     getProducts();
-  }, []);
+  }, [match]);
 
   // const product = products.find((p) => p._id === match.params.id);
 
