@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { LinkContainer } from "react-router-bootstrap";
 import {
   Col,
@@ -13,10 +13,23 @@ import {
 } from "react-bootstrap";
 import Rating from "../components/Rating";
 
-import products from "../products";
+// import products from "../products";
 
 const ProductScreen = ({ match }) => {
-  const product = products.find((p) => p._id === match.params.id);
+  const [product, setProduct] = useState([]);
+
+  useEffect(() => {
+    const getProducts = async () => {
+      const response = await fetch(`/api/products/${match.params.id}`);
+      const data = await response.json();
+
+      setProduct(data);
+    };
+
+    getProducts();
+  }, []);
+
+  // const product = products.find((p) => p._id === match.params.id);
 
   return (
     <>
