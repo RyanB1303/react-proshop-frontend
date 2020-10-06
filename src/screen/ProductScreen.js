@@ -10,24 +10,31 @@ import {
   Breadcrumb,
   ListGroupItem,
   Container,
+  Form,
 } from "react-bootstrap";
 import Rating from "../components/Rating";
-
+import { useDispatch, useSelector } from "react-redux";
+import { listProductDetails } from "../actions/productActions";
+import Loader from "../components/Loader";
+import Message from "../components/Message";
 // import products from "../products";
 
-const ProductScreen = ({ match }) => {
-  const [product, setProduct] = useState([]);
+const ProductScreen = ({ history, match }) => {
+  const [qty, setQty] = useState(0);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const getProducts = async () => {
-      const response = await fetch(`/api/products/${match.params.id}`);
-      const data = await response.json();
+    dispatch(listProductDetails(match.params.id));
+  }, [dispatch, match]);
 
-      setProduct(data);
-    };
+  const productDetails = useSelector((state) => state.productDetails);
 
-    getProducts();
-  }, [match]);
+  const { loading, error, product } = productDetails;
+
+  const addToCartHandler = () => {
+    history.push(`/cart/${match.params.id}?qty=${qty}`);
+  };
 
   // const product = products.find((p) => p._id === match.params.id);
 
@@ -40,64 +47,95 @@ const ProductScreen = ({ match }) => {
         <Breadcrumb.Item active>{product.name}</Breadcrumb.Item>
       </Breadcrumb>
 
-      <Container>
-        <Row>
-          <Col className="product-image" md={6}>
-            <Image src={product.image} fluid></Image>
-          </Col>
-          <Col className="product-details" md={3}>
-            <ListGroup variant="flush">
-              <ListGroupItem>
-                <h3 className="prod-name">{product.name}</h3>
-              </ListGroupItem>
-              <ListGroupItem>
-                <Rating
-                  value={product.rating}
-                  text={` ${product.numReviews} Reviews`}
-                />
-              </ListGroupItem>
-              <ListGroupItem>
-                <p className="prod-desc">{product.description} </p>
-              </ListGroupItem>
-            </ListGroup>
-          </Col>
-          <Col md={3}>
-            <Card>
+      {loading ? (
+        <Loader />
+      ) : error ? (
+        <Message variant="danger">{error}</Message>
+      ) : (
+        <Container>
+          <Row>
+            <Col className="product-image" md={6}>
+              <Image src={product.image} fluid></Image>
+            </Col>
+            <Col className="product-details" md={3}>
               <ListGroup variant="flush">
                 <ListGroupItem>
-                  <Row>
-                    <Col>
-                      <strong>Price : &nbsp;</strong>
-                    </Col>
-                    <Col>$ {product.price}</Col>
-                  </Row>
+                  <h3 className="prod-name">{product.name}</h3>
                 </ListGroupItem>
-                <ListGroup.Item>
-                  <Row>
-                    <Col>Stock : &nbsp;</Col>
-                    <Col>
-                      <strong>
-                        {product.countInStock > 0
-                          ? "Alvailable"
-                          : "Out Of Stock"}
-                      </strong>
-                    </Col>
-                  </Row>
-                </ListGroup.Item>
-                <ListGroup.Item>
-                  <Button
-                    variant="primary"
-                    disabled={product.countInStock <= 0}
-                    block
-                  >
-                    Add To Cart
-                  </Button>
-                </ListGroup.Item>
+                <ListGroupItem>
+                  <Rating
+                    value={product.rating}
+                    text={` ${product.numReviews} Reviews`}
+                  />
+                </ListGroupItem>
+                <ListGroupItem>
+                  <p className="prod-desc">{product.description} </p>
+                </ListGroupItem>
               </ListGroup>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+            </Col>
+            <Col md={3}>
+              <Card>
+                <ListGroup variant="flush">
+                  <ListGroupItem>
+                    <Row>
+                      <Col>
+                        <strong>Price : &nbsp;</strong>
+                      </Col>
+                      <Col>$ {product.price}</Col>
+                    </Row>
+                  </ListGroupItem>
+                  <ListGroup.Item>
+                    <Row>
+                      <Col>Stock : &nbsp;</Col>
+                      <Col>
+                        <strong>
+                          {product.countInStock > 0
+                            ? "Alvailable"
+                            : "Out Of Stock"}
+                        </strong>
+                      </Col>
+                    </Row>
+                  </ListGroup.Item>
+                  {product.countInStock > 0 && (
+                    <ListGroupItem>
+                      <Row>
+                        <Col>Qty</Col>
+                        <Col>
+                          <Form.Control
+                            as="select"
+                            value={qty}
+                            onChange={(e) => {
+                              setQty(e.target.value);
+                            }}
+                          >
+                            {[...Array(product.countInStock).keys()].map(
+                              (i) => (
+                                <option key={i + 1} value={i + 1}>
+                                  {i + 1}
+                                </option>
+                              )
+                            )}
+                          </Form.Control>
+                        </Col>
+                      </Row>
+                    </ListGroupItem>
+                  )}
+                  <ListGroup.Item>
+                    <Button
+                      onClick={addToCartHandler}
+                      variant="primary"
+                      disabled={product.countInStock <= 0}
+                      block
+                    >
+                      Add To Cart
+                    </Button>
+                  </ListGroup.Item>
+                </ListGroup>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      )}
     </>
   );
 };
