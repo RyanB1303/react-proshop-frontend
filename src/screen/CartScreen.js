@@ -54,10 +54,15 @@ const CartScreen = ({ match, location, history }) => {
             <Col>{item.name}</Col>
             <Col>{item.qty}</Col>
             <Col>$ {item.price}</Col>
+            <Col md={2}>
+              <Button
+                onClick={() => removeFromCartHandler(item.product)}
+                type="button"
+              >
+                <i className="fas fa-trash-alt"></i>
+              </Button>
+            </Col>
           </Row>
-          <Button onClick={() => removeFromCartHandler(item.product)}>
-            Remove
-          </Button>
         </Card>
       ))}
       Total Items :{" "}
